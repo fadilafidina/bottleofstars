@@ -24,6 +24,10 @@ export function MessageCard({
   onClose,
   onSurpriseAgain,
 }: MessageCardProps) {
+  const shouldShowText =
+    Boolean(message?.messageText?.trim()) &&
+    message?.messageText.trim() !== "Decorated star card";
+
   return (
     <AnimatePresence>
       {message ? (
@@ -48,16 +52,21 @@ export function MessageCard({
             <h2 className="mt-4 font-serif text-4xl text-[var(--color-ink)]">
               {message.senderName?.trim() ? `From ${message.senderName}` : "From someone who loves you"}
             </h2>
-            <p className="mt-5 whitespace-pre-wrap text-base leading-7 text-[var(--color-night)] sm:text-lg">
-              {message.messageText}
-            </p>
 
             {message.photoUrl ? (
-              <img
-                alt="Attached memory"
-                className="mt-6 max-h-80 w-full rounded-[1.6rem] object-cover"
-                src={message.photoUrl}
-              />
+              <div className="mt-6 overflow-hidden rounded-[1.6rem] border border-[#dfeaf2] bg-white/72 p-3">
+                <img
+                  alt="Designed card"
+                  className="max-h-[28rem] w-full rounded-[1.2rem] object-contain"
+                  src={message.photoUrl}
+                />
+              </div>
+            ) : null}
+
+            {shouldShowText ? (
+              <p className="mt-5 whitespace-pre-wrap text-base leading-7 text-[var(--color-night)] sm:text-lg">
+                {message.messageText}
+              </p>
             ) : null}
 
             {message.stickers.length ? (

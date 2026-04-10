@@ -1,4 +1,10 @@
 import { demoAdminBottles, demoBottle, demoMessages } from "./demo-data";
+import {
+  getDemoBottleWithCount,
+  getSortedDemoMessages,
+  getStoredDemoMessages,
+  setStoredDemoMessages,
+} from "./demo-store";
 
 import type { Bottle } from "../types/bottle";
 import type { Message } from "../types/message";
@@ -57,7 +63,8 @@ export async function fetchBottleBySlug(
     );
   } catch (error) {
     if (slug === "demo" && token === "preview") {
-      return { bottle: demoBottle };
+      const messages = getSortedDemoMessages();
+      return { bottle: getDemoBottleWithCount(messages) };
     }
 
     throw error;
@@ -73,20 +80,22 @@ export async function createMessage(input: CreateMessageInput) {
     });
   } catch (error) {
     if (input.bottleId === demoBottle.id && input.token === "preview") {
-      return {
-        message: {
-          id: crypto.randomUUID(),
-          bottleId: demoBottle.id,
-          senderName: input.name?.trim() || null,
-          messageText: input.message,
-          photoUrl: null,
-          stickers: input.stickers,
-          starColor: "#A7D8FF",
-          createdAt: new Date().toISOString(),
-          openedAt: null,
-          cardPayload: input.cardPayload ?? null,
-        },
+      const nextMessage: Message = {
+        id: crypto.randomUUID(),
+        bottleId: demoBottle.id,
+        senderName: input.name?.trim() || null,
+        messageText: input.message,
+        photoUrl: input.renderedCardDataUrl ?? input.photoDataUrl ?? null,
+        stickers: input.stickers,
+        starColor: "#A7D8FF",
+        createdAt: new Date().toISOString(),
+        openedAt: null,
+        cardPayload: input.cardPayload ?? null,
       };
+      const nextMessages = [nextMessage, ...getStoredDemoMessages()];
+      setStoredDemoMessages(nextMessages);
+
+      return { message: nextMessage };
     }
 
     throw error;
@@ -100,7 +109,8 @@ export async function fetchMessages(bottleId: string, token: string) {
     );
   } catch (error) {
     if (bottleId === demoBottle.id && token === "preview") {
-      return { bottle: demoBottle, messages: demoMessages };
+      const messages = getSortedDemoMessages();
+      return { bottle: getDemoBottleWithCount(messages), messages };
     }
 
     throw error;
@@ -123,18 +133,19 @@ export async function markMessageOpened(
     );
   } catch (error) {
     if (bottleId === demoBottle.id && token === "preview") {
-      const message = demoMessages.find((entry) => entry.id === messageId);
+      const nextMessages = getStoredDemoMessages().map((entry) =>
+        entry.id === messageId
+          ? { ...entry, openedAt: entry.openedAt ?? new Date().toISOString() }
+          : entry,
+      );
+      setStoredDemoMessages(nextMessages);
+      const message = nextMessages.find((entry) => entry.id === messageId);
 
       if (!message) {
         throw error;
       }
 
-      return {
-        message: {
-          ...message,
-          openedAt: message.openedAt ?? new Date().toISOString(),
-        },
-      };
+      return { message };
     }
 
     throw error;

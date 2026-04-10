@@ -10,7 +10,7 @@ import { EmptyState } from "../components/ui/empty-state";
 import { StarCardEditor } from "../components/submission/star-card-editor";
 import { createMessage } from "../lib/api";
 import { createDefaultCardDesign } from "../lib/star-card";
-import { maskToken, getTokenFromSearch } from "../lib/tokens";
+import { getTokenFromSearch } from "../lib/tokens";
 import { useBottle } from "../hooks/use-bottle";
 import type { StarCardDesign, StarCardElement } from "../types/star-card";
 

@@ -3,8 +3,6 @@ import { Group, Image as KonvaImage, Layer, Rect, Stage, Text } from "react-konv
 import type Konva from "konva";
 
 import { Button } from "../ui/button";
-import { Card } from "../ui/card";
-import { createDefaultCardDesign } from "../../lib/star-card";
 import { cn } from "../../lib/utils";
 
 import type {
@@ -28,7 +26,7 @@ const backgrounds: Array<{
   { id: "blush", label: "Blush", base: "#fffaf7", accent: "#f1dfe7" },
 ];
 
-const emojiLibrary = ["✦", "☁️", "🩵", "🐚", "🌊", "🫧"];
+const emojiLibrary = ["☁️", "🩵", "🐚", "🌊", "🫧", "🤍", "💌"];
 const bubblePaddingX = 18;
 const bubblePaddingY = 14;
 
@@ -114,8 +112,6 @@ export function StarCardEditor({
   onUploadPhoto,
   stageRef,
 }: StarCardEditorProps) {
-  const selectedElement =
-    design.elements.find((element) => element.id === selectedId) ?? null;
   const background = backgrounds.find((entry) => entry.id === design.background) ?? backgrounds[0];
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [textInput, setTextInput] = useState("");
@@ -128,18 +124,6 @@ export function StarCardEditor({
         element.id === id ? updater(element) : element,
       ),
     });
-  };
-
-  const removeSelected = () => {
-    if (!selectedId) {
-      return;
-    }
-
-    onChange({
-      ...design,
-      elements: design.elements.filter((element) => element.id !== selectedId),
-    });
-    onSelect(null);
   };
 
   const removeElement = (id: string) => {
@@ -398,19 +382,19 @@ export function StarCardEditor({
       <div className="w-full space-y-4 px-1 sm:px-2">
         <div>
           <p className="mb-3 text-xs uppercase tracking-[0.24em] text-[var(--color-night)]/75">
-            Stickers
+            stickers
           </p>
           <div className="flex flex-wrap gap-2">
-          {emojiLibrary.map((emoji) => (
-            <button
-              className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#dfeaf2] bg-white/86 text-xl transition hover:-translate-y-0.5 hover:bg-[#edf7ff]"
-              key={emoji}
-              onClick={() => addEmoji(emoji)}
-              type="button"
-            >
-              {emoji}
-            </button>
-          ))}
+            {emojiLibrary.map((emoji) => (
+              <button
+                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#dfeaf2] bg-white/86 text-xl transition hover:-translate-y-0.5 hover:bg-[#edf7ff]"
+                key={emoji}
+                onClick={() => addEmoji(emoji)}
+                type="button"
+              >
+                {emoji}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -419,21 +403,21 @@ export function StarCardEditor({
             Theme
           </p>
           <div className="flex flex-wrap items-center gap-2">
-          {backgrounds.map((entry) => (
-            <button
-              className={cn(
-                "rounded-2xl border px-3 py-2 text-sm transition",
-                design.background === entry.id
-                  ? "border-[var(--color-sky)] bg-[#edf7ff] text-[var(--color-ink)]"
-                  : "border-[#dfeaf2] bg-white/80 text-[var(--color-night)]",
-              )}
-              key={entry.id}
-              onClick={() => onChange({ ...design, background: entry.id })}
-              type="button"
-            >
-              {entry.label}
-            </button>
-          ))}
+            {backgrounds.map((entry) => (
+              <button
+                className={cn(
+                  "rounded-2xl border px-3 py-2 text-sm transition",
+                  design.background === entry.id
+                    ? "border-[var(--color-sky)] bg-[#edf7ff] text-[var(--color-ink)]"
+                    : "border-[#dfeaf2] bg-white/80 text-[var(--color-night)]",
+                )}
+                key={entry.id}
+                onClick={() => onChange({ ...design, background: entry.id })}
+                type="button"
+              >
+                {entry.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -442,17 +426,22 @@ export function StarCardEditor({
             Text
           </p>
           <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={() => setShowTextComposer((current) => !current)}
-            type="button"
-            variant={showTextComposer ? "secondary" : "primary"}
-          >
-            Add text bubble
-          </Button>
-          <label className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-[#dfeaf2] bg-white/86 px-4 text-sm text-[var(--color-ink)] transition hover:bg-[#edf7ff]">
-            {isUploadingPhoto ? "Adding..." : "Add photo"}
-            <input accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleUpload} type="file" />
-          </label>
+            <Button
+              onClick={() => setShowTextComposer((current) => !current)}
+              type="button"
+              variant={showTextComposer ? "secondary" : "primary"}
+            >
+              Add text bubble
+            </Button>
+            <label className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-[#dfeaf2] bg-white/86 px-4 text-sm text-[var(--color-ink)] transition hover:bg-[#edf7ff]">
+              {isUploadingPhoto ? "Adding..." : "Add photo"}
+              <input
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handleUpload}
+                type="file"
+              />
+            </label>
           </div>
         </div>
 
