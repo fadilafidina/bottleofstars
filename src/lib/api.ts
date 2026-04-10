@@ -59,7 +59,7 @@ export async function fetchBottleBySlug(
 ) {
   try {
     return await requestJson<BottleLookupResponse>(
-      `/api/bottles/${encodeURIComponent(slug)}?token=${encodeURIComponent(token)}&mode=${mode}`,
+      `/api/bottle?slug=${encodeURIComponent(slug)}&token=${encodeURIComponent(token)}&mode=${mode}`,
     );
   } catch (error) {
     if (slug === "demo" && token === "preview") {
@@ -123,14 +123,11 @@ export async function markMessageOpened(
   token: string,
 ) {
   try {
-    return await requestJson<{ message: Message }>(
-      `/api/messages/${encodeURIComponent(messageId)}/open`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bottleId, token }),
-      },
-    );
+    return await requestJson<{ message: Message }>("/api/messages/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ bottleId, token, messageId }),
+    });
   } catch (error) {
     if (bottleId === demoBottle.id && token === "preview") {
       const nextMessages = getStoredDemoMessages().map((entry) =>

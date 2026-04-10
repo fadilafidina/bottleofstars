@@ -1,5 +1,5 @@
-import { getSupabaseAdmin } from "../_lib/supabase-admin";
-import { allowMethods, json } from "../_lib/http";
+import { getSupabaseAdmin } from "./_lib/supabase-admin";
+import { allowMethods, json } from "./_lib/http";
 
 export default async function handler(req: any, res: any) {
   if (!allowMethods(req, res, ["GET"])) {

@@ -1,9 +1,10 @@
-import { getSupabaseAdmin } from "../../_lib/supabase-admin";
-import { allowMethods, json, parseJsonBody } from "../../_lib/http";
+import { getSupabaseAdmin } from "../_lib/supabase-admin";
+import { allowMethods, json, parseJsonBody } from "../_lib/http";
 
 type OpenMessageBody = {
   bottleId?: string;
   token?: string;
+  messageId?: string;
 };
 
 export default async function handler(req: any, res: any) {
@@ -12,11 +13,10 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { id } = req.query;
     const body = parseJsonBody<OpenMessageBody>(req);
 
-    if (!id || !body.bottleId || !body.token) {
-      json(res, 400, { error: "Missing message id, bottleId, or token." });
+    if (!body.messageId || !body.bottleId || !body.token) {
+      json(res, 400, { error: "Missing messageId, bottleId, or token." });
       return;
     }
 
@@ -36,7 +36,7 @@ export default async function handler(req: any, res: any) {
     const { data, error } = await supabase
       .from("messages")
       .update({ opened_at: new Date().toISOString() })
-      .eq("id", id)
+      .eq("id", body.messageId)
       .eq("bottle_id", body.bottleId)
       .select("id, bottle_id, sender_name, message_text, photo_url, stickers, star_color, created_at, opened_at, card_payload")
       .single();
