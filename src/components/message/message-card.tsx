@@ -35,21 +35,35 @@ export function MessageCard({
           />
           <motion.aside
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="fixed inset-x-4 top-1/2 z-40 mx-auto w-full max-w-2xl -translate-y-1/2 rounded-[2rem] border border-[#dfeaf2] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(247,244,239,0.84))] p-6 shadow-[0_30px_100px_rgba(164,184,204,0.22)] backdrop-blur-2xl sm:p-8"
+            className="fixed inset-x-4 top-1/2 z-40 mx-auto w-full max-w-[44rem] -translate-y-1/2 rounded-[2.2rem] border border-[#dfeaf2] bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(250,247,243,0.86))] p-5 shadow-[0_34px_110px_rgba(164,184,204,0.24)] backdrop-blur-2xl sm:p-7"
             exit={{ opacity: 0, y: 10, scale: 0.97 }}
             initial={{ opacity: 0, y: 28, scale: 0.95 }}
             transition={{ duration: 0.28, ease: "easeOut" }}
           >
-            <p className="text-sm uppercase tracking-[0.28em] text-[var(--color-night)]/80">
-              A star opened
-            </p>
-            <h2 className="mt-4 font-serif text-4xl text-[var(--color-ink)]">
-              {message.senderName?.trim() ? `From ${message.senderName}` : "From someone who loves you"}
-            </h2>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[var(--color-night)]/70">
+                  A star opened
+                </p>
+                <h2 className="mt-3 font-serif text-[2rem] leading-none text-[var(--color-ink)] sm:text-[2.35rem]">
+                  {message.senderName?.trim()
+                    ? `From ${message.senderName}`
+                    : "From someone who loves you"}
+                </h2>
+              </div>
+              <button
+                aria-label="Close message"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-[1rem] border border-[#dfeaf2] bg-white/88 text-xl leading-none text-[var(--color-night)] transition hover:bg-white hover:text-[var(--color-ink)]"
+                onClick={onClose}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
 
             {showDesignedCard && message?.cardPayload ? (
-              <div className="mt-6 overflow-hidden rounded-[1.6rem] border border-[#dfeaf2] bg-white/72 p-3">
-                <StarCardPreview design={message.cardPayload} maxWidth={520} />
+              <div className="mt-6 overflow-hidden rounded-[1.8rem] border border-[#dfeaf2] bg-white/72 p-3 sm:p-4">
+                <StarCardPreview design={message.cardPayload} maxWidth={600} />
               </div>
             ) : null}
 

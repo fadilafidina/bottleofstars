@@ -17,14 +17,15 @@ import { useMessages } from "../hooks/use-messages";
 import type { Message } from "../types/message";
 
 const starSlots = [
-  { top: "16%", left: "26%" },
-  { top: "21%", left: "55%" },
-  { top: "34%", left: "42%" },
-  { top: "44%", left: "64%" },
-  { top: "52%", left: "22%" },
-  { top: "60%", left: "49%" },
-  { top: "71%", left: "35%" },
-  { top: "76%", left: "60%" },
+  { top: "18%", left: "34%" },
+  { top: "19%", left: "52%" },
+  { top: "30%", left: "63%" },
+  { top: "35%", left: "26%" },
+  { top: "43%", left: "46%" },
+  { top: "49%", left: "64%" },
+  { top: "57%", left: "32%" },
+  { top: "63%", left: "52%" },
+  { top: "72%", left: "40%" },
 ];
 
 export function BottleViewPage() {
@@ -96,7 +97,7 @@ export function BottleViewPage() {
 
   const handleOpenMessage = async (message: Message) => {
     const updated = await openMessage(message.id);
-    setActiveMessage(updated ? { ...message, openedAt: updated.openedAt } : message);
+    setActiveMessage(updated ? { ...message, ...updated } : message);
   };
 
   const handleSurpriseMe = async () => {
@@ -117,16 +118,21 @@ export function BottleViewPage() {
           className="relative"
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <div className="pointer-events-none absolute inset-x-0 top-8 mx-auto h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(185,220,251,0.42),rgba(185,220,251,0)_68%)] blur-3xl" />
+          <div className="pointer-events-none absolute inset-x-0 top-10 mx-auto h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(185,220,251,0.42),rgba(185,220,251,0)_68%)] blur-3xl" />
           <div className="relative mx-auto w-full max-w-md">
-            <div className="pointer-events-none absolute inset-x-[19%] top-[20%] bottom-[21%] z-10 rounded-[40%_40%_30%_30%/18%_18%_24%_24%]">
+            <div className="pointer-events-none absolute inset-x-[21.5%] top-[20%] bottom-[21%] z-10 rounded-[40%_40%_30%_30%/18%_18%_24%_24%]">
               <AnimatePresence>
                 {visibleMessages.map((message, index) => {
                   const slot = starSlots[index % starSlots.length];
+                  const isActive = activeMessage?.id === message.id;
 
                   return (
                     <motion.button
-                      animate={{ opacity: 1, scale: 1 }}
+                      animate={{
+                        opacity: isActive ? 1 : 0.98,
+                        scale: isActive ? 1.1 : 1,
+                        zIndex: isActive ? 20 : 10,
+                      }}
                       className="pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-1/2"
                       exit={{ opacity: 0 }}
                       initial={{ opacity: 0, scale: 0.7 }}
@@ -139,10 +145,11 @@ export function BottleViewPage() {
                       type="button"
                     >
                       <FloatingStar
+                        active={isActive}
                         color={message.starColor || starPalette[index % starPalette.length]}
                         delay={index * 0.4}
                         dimmed={Boolean(message.openedAt)}
-                        size={index % 3 === 0 ? "lg" : "md"}
+                        size={index % 3 === 0 ? "lg" : index % 2 === 0 ? "md" : "sm"}
                       />
                     </motion.button>
                   );
@@ -152,10 +159,10 @@ export function BottleViewPage() {
 
             <BottleShell>
               <div className="flex items-center justify-center gap-3">
-                <div className="flex h-10 min-w-10 items-center justify-center rounded-full border border-[#d7e6f2] bg-white/88 px-3 text-sm text-[var(--color-ink)]">
+                <div className="flex h-10 min-w-10 items-center justify-center rounded-[1rem] border border-[#d7e6f2] bg-white/88 px-3 text-sm text-[var(--color-ink)]">
                   {currentCount}
                 </div>
-                <div className="flex h-10 min-w-10 items-center justify-center rounded-full border border-[#d7e6f2] bg-[#edf7ff] px-3 text-sm text-[var(--color-ink)]">
+                <div className="flex h-10 min-w-10 items-center justify-center rounded-[1rem] border border-[#d7e6f2] bg-[#edf7ff] px-3 text-sm text-[var(--color-ink)]">
                   {unreadMessages.length}
                 </div>
               </div>
@@ -164,7 +171,7 @@ export function BottleViewPage() {
         </motion.div>
 
         {messages.length ? (
-          <div className="mx-auto mt-8 flex max-w-sm flex-col gap-3">
+          <div className="mx-auto mt-7 flex max-w-sm flex-col gap-3">
             <Button
               className="w-full"
               onClick={() => {

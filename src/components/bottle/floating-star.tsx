@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { cn } from "../../lib/utils";
 
 type FloatingStarProps = {
+  active?: boolean;
   color: string;
   delay?: number;
   dimmed?: boolean;
@@ -16,6 +17,7 @@ const sizeMap = {
 } as const;
 
 export function FloatingStar({
+  active = false,
   color,
   delay = 0,
   dimmed = false,
@@ -24,19 +26,21 @@ export function FloatingStar({
   return (
     <motion.span
       animate={{
-        y: [0, -6, 0],
-        opacity: dimmed ? 0.48 : 1,
-        scale: dimmed ? 0.94 : 1,
-        rotate: [-6, 4, -6],
+        y: active ? [0, -10, 0] : [0, -6, 0],
+        opacity: dimmed ? 0.42 : 1,
+        scale: active ? [1, 1.12, 1] : dimmed ? 0.92 : 1,
+        rotate: active ? [-8, 8, -8] : [-6, 4, -6],
       }}
       className={cn("absolute", sizeMap[size])}
       style={{
         filter: dimmed
           ? `drop-shadow(0 0 10px ${color}55)`
-          : `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 20px ${color}aa)`,
+          : active
+            ? `drop-shadow(0 0 14px ${color}) drop-shadow(0 0 28px ${color})`
+            : `drop-shadow(0 0 10px ${color}) drop-shadow(0 0 20px ${color}aa)`,
       }}
       transition={{
-        duration: 4 + delay,
+        duration: active ? 2.6 : 4 + delay,
         ease: "easeInOut",
         repeat: Infinity,
       }}
