@@ -38,7 +38,7 @@ export default async function handler(req: any, res: any) {
       .update({ opened_at: new Date().toISOString() })
       .eq("id", id)
       .eq("bottle_id", body.bottleId)
-      .select("id, bottle_id, sender_name, message_text, photo_url, stickers, star_color, created_at, opened_at")
+      .select("id, bottle_id, sender_name, message_text, photo_url, stickers, star_color, created_at, opened_at, card_payload")
       .single();
 
     if (error || !data) {
@@ -57,6 +57,7 @@ export default async function handler(req: any, res: any) {
         starColor: data.star_color,
         createdAt: data.created_at,
         openedAt: data.opened_at,
+        cardPayload: data.card_payload,
       },
     });
   } catch (error) {

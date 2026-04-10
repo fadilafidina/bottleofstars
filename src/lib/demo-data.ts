@@ -1,5 +1,6 @@
 import type { Bottle } from "../types/bottle";
 import type { Message } from "../types/message";
+import { createDefaultCardDesign } from "./star-card";
 
 export const demoBottle: Bottle = {
   id: "demo-bottle-id",
@@ -26,6 +27,7 @@ export const demoMessages: Message[] = [
     starColor: "#A7D8FF",
     createdAt: new Date().toISOString(),
     openedAt: null,
+    cardPayload: createDefaultCardDesign(),
   },
   {
     id: "msg-2",
@@ -38,6 +40,7 @@ export const demoMessages: Message[] = [
     starColor: "#FFF3DA",
     createdAt: new Date().toISOString(),
     openedAt: new Date().toISOString(),
+    cardPayload: null,
   },
   {
     id: "msg-3",
@@ -50,6 +53,7 @@ export const demoMessages: Message[] = [
     starColor: "#F4C4D7",
     createdAt: new Date().toISOString(),
     openedAt: null,
+    cardPayload: null,
   },
   {
     id: "msg-4",
@@ -62,6 +66,7 @@ export const demoMessages: Message[] = [
     starColor: "#EEDC9A",
     createdAt: new Date().toISOString(),
     openedAt: null,
+    cardPayload: null,
   },
   {
     id: "msg-5",
@@ -74,6 +79,7 @@ export const demoMessages: Message[] = [
     starColor: "#CFE7C7",
     createdAt: new Date().toISOString(),
     openedAt: new Date().toISOString(),
+    cardPayload: null,
   },
   {
     id: "msg-6",
@@ -86,6 +92,7 @@ export const demoMessages: Message[] = [
     starColor: "#A7D8FF",
     createdAt: new Date().toISOString(),
     openedAt: null,
+    cardPayload: null,
   },
 ];
 

@@ -10,6 +10,8 @@ type CreateMessageBody = {
   photoDataUrl?: string;
   photoFileName?: string;
   photoMimeType?: string;
+  renderedCardDataUrl?: string;
+  cardPayload?: unknown;
 };
 
 async function uploadPhotoIfPresent(
@@ -17,11 +19,13 @@ async function uploadPhotoIfPresent(
   body: CreateMessageBody,
   bottleId: string,
 ) {
-  if (!body.photoDataUrl || !body.photoMimeType) {
+  const sourceDataUrl = body.renderedCardDataUrl ?? body.photoDataUrl;
+
+  if (!sourceDataUrl || !body.photoMimeType) {
     return null;
   }
 
-  const parts = body.photoDataUrl.split(",");
+  const parts = sourceDataUrl.split(",");
   const base64 = parts[1];
 
   if (!base64) {
@@ -84,7 +88,7 @@ export default async function handler(req: any, res: any) {
 
       const messagesLookup = await supabase
         .from("messages")
-        .select("id, bottle_id, sender_name, message_text, photo_url, stickers, star_color, created_at, opened_at")
+        .select("id, bottle_id, sender_name, message_text, photo_url, stickers, star_color, created_at, opened_at, card_payload")
         .eq("bottle_id", bottleId)
         .order("created_at", { ascending: true });
 
@@ -114,6 +118,7 @@ export default async function handler(req: any, res: any) {
           starColor: message.star_color,
           createdAt: message.created_at,
           openedAt: message.opened_at,
+          cardPayload: message.card_payload,
         })),
       });
       return;
@@ -151,8 +156,9 @@ export default async function handler(req: any, res: any) {
         photo_url: photoUrl,
         stickers: body.stickers ?? [],
         star_color: starColor,
+        card_payload: body.cardPayload ?? null,
       })
-      .select("id, bottle_id, sender_name, message_text, photo_url, stickers, star_color, created_at, opened_at")
+      .select("id, bottle_id, sender_name, message_text, photo_url, stickers, star_color, created_at, opened_at, card_payload")
       .single();
 
     if (insertResult.error || !insertResult.data) {
@@ -171,6 +177,7 @@ export default async function handler(req: any, res: any) {
         starColor: insertResult.data.star_color,
         createdAt: insertResult.data.created_at,
         openedAt: insertResult.data.opened_at,
+        cardPayload: insertResult.data.card_payload,
       },
     });
   } catch (error) {

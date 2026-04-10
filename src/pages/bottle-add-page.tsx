@@ -1,28 +1,18 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import type Konva from "konva";
 
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { LoadingScreen } from "../components/ui/loading-screen";
 import { EmptyState } from "../components/ui/empty-state";
+import { StarCardEditor } from "../components/submission/star-card-editor";
 import { createMessage } from "../lib/api";
-import { maxStickersPerMessage, stickerOptions } from "../lib/stickers";
+import { createDefaultCardDesign } from "../lib/star-card";
 import { maskToken, getTokenFromSearch } from "../lib/tokens";
 import { useBottle } from "../hooks/use-bottle";
-
-const submissionSchema = z.object({
-  senderName: z.string().max(80).optional(),
-  message: z
-    .string()
-    .min(1, "A message is required.")
-    .max(1200, "Keep it to 1200 characters or fewer."),
-});
-
-type SubmissionValues = z.infer<typeof submissionSchema>;
+import type { StarCardDesign, StarCardElement } from "../types/star-card";
 
 async function fileToDataUrl(file: File) {
   return await new Promise<string>((resolve, reject) => {
@@ -33,41 +23,74 @@ async function fileToDataUrl(file: File) {
   });
 }
 
+function extractCardMessage(elements: StarCardElement[]) {
+  return elements
+    .flatMap((element) => {
+      if (element.kind === "text") {
+        return [element.text.trim()];
+      }
+
+      return [];
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+function hasMeaningfulCardContent(design: StarCardDesign) {
+  return design.elements.some((element) => {
+    if (element.kind === "text") {
+      return Boolean(element.text.trim());
+    }
+
+    return true;
+  });
+}
+
 export function BottleAddPage() {
   const { slug } = useParams();
   const location = useLocation();
   const token = useMemo(() => getTokenFromSearch(location.search), [location.search]);
-  const [selectedStickers, setSelectedStickers] = useState<string[]>([]);
-  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [senderName, setSenderName] = useState("");
+  const [cardDesign, setCardDesign] = useState<StarCardDesign>(createDefaultCardDesign);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [submitState, setSubmitState] = useState<"idle" | "submitting" | "success">(
     "idle",
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { bottle, error, isLoading } = useBottle(slug, token, "guest");
-  const form = useForm<SubmissionValues>({
-    resolver: zodResolver(submissionSchema),
-    defaultValues: {
-      senderName: "",
-      message: "",
-    },
-  });
+  const stageRef = useRef<Konva.Stage | null>(null);
 
-  const toggleSticker = (id: string) => {
-    setSelectedStickers((current) => {
-      if (current.includes(id)) {
-        return current.filter((value) => value !== id);
-      }
-
-      if (current.length >= maxStickersPerMessage) {
-        return current;
-      }
-
-      return [...current, id];
-    });
+  const handlePhotoUpload = async (file: File) => {
+    const src = await fileToDataUrl(file);
+    const id = crypto.randomUUID();
+    setCardDesign((current) => ({
+      ...current,
+      elements: [
+        ...current.elements,
+        {
+          id,
+          kind: "image",
+          src,
+          x: 70,
+          y: 222,
+          width: 180,
+          height: 120,
+          rotation: -3,
+        },
+      ],
+    }));
+    setSelectedElementId(id);
   };
 
-  const onSubmit = form.handleSubmit(async (values) => {
+  const onSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
     if (!bottle || !token) {
+      return;
+    }
+
+    if (!hasMeaningfulCardContent(cardDesign)) {
+      setErrorMessage("Add some text, an emoji, or a photo to your card first.");
       return;
     }
 
@@ -75,22 +98,24 @@ export function BottleAddPage() {
     setErrorMessage(null);
 
     try {
-      const photoDataUrl = selectedPhoto ? await fileToDataUrl(selectedPhoto) : undefined;
+      const messageText = extractCardMessage(cardDesign.elements) || "Decorated star card";
+      const renderedCardDataUrl =
+        stageRef.current?.toDataURL({ pixelRatio: 2 }) ?? undefined;
 
       await createMessage({
         bottleId: bottle.id,
         token,
-        name: values.senderName,
-        message: values.message,
-        stickers: selectedStickers,
-        photoDataUrl,
-        photoFileName: selectedPhoto?.name,
-        photoMimeType: selectedPhoto?.type,
+        name: senderName,
+        message: messageText,
+        stickers: [],
+        renderedCardDataUrl,
+        photoMimeType: "image/png",
+        cardPayload: cardDesign,
       });
 
-      form.reset();
-      setSelectedStickers([]);
-      setSelectedPhoto(null);
+      setSenderName("");
+      setCardDesign(createDefaultCardDesign());
+      setSelectedElementId(null);
       setSubmitState("success");
     } catch (submitError) {
       setErrorMessage(
@@ -100,7 +125,7 @@ export function BottleAddPage() {
       );
       setSubmitState("idle");
     }
-  });
+  };
 
   if (isLoading) {
     return (
@@ -127,37 +152,15 @@ export function BottleAddPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-6xl px-6 py-8">
-      <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-        <Card className="flex flex-col justify-between gap-8">
-          <div>
-            <p className="text-sm uppercase tracking-[0.28em] text-[var(--color-night)]/75">
-              Guest submission
-            </p>
-            <h1 className="mt-4 font-serif text-4xl text-[var(--color-ink)]">
-              Add your star for {bottle.recipientNames}
-            </h1>
-            <p className="mt-4 max-w-md text-[var(--color-night)]">
-              {bottle.title} is ready for messages. Leave something sweet,
-              funny, honest, or quietly unforgettable.
-            </p>
-          </div>
+    <main className="mx-auto min-h-screen max-w-5xl px-6 py-8 sm:py-10">
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-6 text-center sm:mb-8">
+          <h1 className="font-serif text-4xl text-[var(--color-ink)] sm:text-5xl">
+            Add your message for {bottle.recipientNames}
+          </h1>
+        </div>
 
-          <div className="space-y-3 text-sm text-[var(--color-night)]">
-            <p>
-              Bottle slug: <span className="text-[var(--color-ink)]">{bottle.slug}</span>
-            </p>
-            <p>
-              Guest token: <span className="text-[var(--color-ink)]">{maskToken(token)}</span>
-            </p>
-            <p>
-              Occasion:{" "}
-              <span className="text-[var(--color-ink)]">{bottle.occasionType ?? "A special moment"}</span>
-            </p>
-          </div>
-        </Card>
-
-        <Card>
+        <Card className="mx-auto">
           {submitState === "success" ? (
             <motion.div
               animate={{ opacity: 1, y: 0 }}
@@ -184,84 +187,28 @@ export function BottleAddPage() {
             </motion.div>
           ) : (
             <form className="space-y-5" onSubmit={onSubmit}>
-            <div className="space-y-2">
-              <label className="text-sm text-[var(--color-night)]" htmlFor="senderName">
-                Your name
-              </label>
-              <input
-                className="h-12 w-full rounded-2xl border border-[#dae7f3] bg-white/80 px-4 text-[var(--color-ink)] outline-none placeholder:text-[#96a3b0] focus:border-[var(--color-sky)]"
-                id="senderName"
+              <div className="space-y-2">
+                <label className="text-sm text-[var(--color-night)]" htmlFor="senderName">
+                  Signed by
+                </label>
+                <input
+                  className="h-12 w-full rounded-2xl border border-[#dae7f3] bg-white/80 px-4 text-[var(--color-ink)] outline-none placeholder:text-[#96a3b0] focus:border-[var(--color-sky)]"
+                  id="senderName"
+                onChange={(event) => setSenderName(event.target.value)}
                 placeholder="Optional"
                 type="text"
-                {...form.register("senderName")}
+                value={senderName}
               />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-[var(--color-night)]" htmlFor="message">
-                Message
-              </label>
-              <textarea
-                className="min-h-36 w-full rounded-[1.5rem] border border-[#dae7f3] bg-white/80 px-4 py-3 text-[var(--color-ink)] outline-none placeholder:text-[#96a3b0] focus:border-[var(--color-sky)]"
-                id="message"
-                placeholder="Write something kind, silly, tender, or unforgettable."
-                {...form.register("message")}
-              />
-              {form.formState.errors.message ? (
-                <p className="text-sm text-amber-100">
-                  {form.formState.errors.message.message}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-sm text-[var(--color-night)]">Stickers</label>
-                <span className="text-xs uppercase tracking-[0.24em] text-[var(--color-night)]/70">
-                  {selectedStickers.length}/{maxStickersPerMessage}
-                </span>
               </div>
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-                {stickerOptions.map((sticker) => {
-                  const isSelected = selectedStickers.includes(sticker.id);
 
-                  return (
-                    <button
-                      className={`rounded-[1.4rem] border px-3 py-4 text-center transition ${
-                        isSelected
-                          ? "border-[var(--color-sky)] bg-[#eff7fe] text-[var(--color-ink)]"
-                          : "border-[#dae7f3] bg-white/72 text-[var(--color-night)] hover:bg-[#f7fbff]"
-                      }`}
-                      key={sticker.id}
-                      onClick={() => toggleSticker(sticker.id)}
-                      type="button"
-                    >
-                      <span className="block text-lg">{sticker.icon}</span>
-                      <span className="mt-2 block text-xs">{sticker.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-[var(--color-night)]" htmlFor="photo">
-                Photo
-              </label>
-              <input
-                className="block w-full rounded-2xl border border-dashed border-[#d7e6f2] bg-white/72 px-4 py-4 text-sm text-[var(--color-night)] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4fe] file:px-4 file:py-2 file:text-sm file:text-[var(--color-ink)]"
-                id="photo"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null;
-                  setSelectedPhoto(file);
-                }}
-                type="file"
+              <StarCardEditor
+                design={cardDesign}
+                onChange={setCardDesign}
+                onSelect={setSelectedElementId}
+                onUploadPhoto={handlePhotoUpload}
+                selectedId={selectedElementId}
+                stageRef={stageRef}
               />
-              {selectedPhoto ? (
-                <p className="text-sm text-[var(--color-night)]">{selectedPhoto.name}</p>
-              ) : null}
-            </div>
 
             {errorMessage ? (
               <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -270,7 +217,7 @@ export function BottleAddPage() {
             ) : null}
 
             <Button className="w-full" disabled={submitState === "submitting"} type="submit">
-              Place this star in the bottle
+              Send this card into the bottle
             </Button>
             </form>
           )}

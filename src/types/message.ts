@@ -1,3 +1,5 @@
+import type { StarCardDesign } from "./star-card";
+
 export type Message = {
   id: string;
   bottleId: string;
@@ -8,4 +10,5 @@ export type Message = {
   starColor: string;
   createdAt: string;
   openedAt: string | null;
+  cardPayload?: StarCardDesign | null;
 };

@@ -2,6 +2,7 @@ import { demoAdminBottles, demoBottle, demoMessages } from "./demo-data";
 
 import type { Bottle } from "../types/bottle";
 import type { Message } from "../types/message";
+import type { StarCardDesign } from "../types/star-card";
 
 export type BottleMode = "guest" | "view";
 
@@ -14,6 +15,8 @@ export type CreateMessageInput = {
   photoDataUrl?: string;
   photoFileName?: string;
   photoMimeType?: string;
+  renderedCardDataUrl?: string;
+  cardPayload?: StarCardDesign;
 };
 
 export type CreateBottleInput = {
@@ -81,6 +84,7 @@ export async function createMessage(input: CreateMessageInput) {
           starColor: "#A7D8FF",
           createdAt: new Date().toISOString(),
           openedAt: null,
+          cardPayload: input.cardPayload ?? null,
         },
       };
     }
