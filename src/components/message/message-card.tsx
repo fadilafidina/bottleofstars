@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 
+import { StarCardPreview } from "../star-card/star-card-preview";
 import { stickerOptions } from "../../lib/stickers";
 import { Button } from "../ui/button";
 
@@ -27,6 +28,7 @@ export function MessageCard({
   const shouldShowText =
     Boolean(message?.messageText?.trim()) &&
     message?.messageText.trim() !== "Decorated star card";
+  const showDesignedCard = Boolean(message?.cardPayload);
 
   return (
     <AnimatePresence>
@@ -53,7 +55,13 @@ export function MessageCard({
               {message.senderName?.trim() ? `From ${message.senderName}` : "From someone who loves you"}
             </h2>
 
-            {message.photoUrl ? (
+            {showDesignedCard && message?.cardPayload ? (
+              <div className="mt-6 overflow-hidden rounded-[1.6rem] border border-[#dfeaf2] bg-white/72 p-3">
+                <StarCardPreview design={message.cardPayload} maxWidth={520} />
+              </div>
+            ) : null}
+
+            {!showDesignedCard && message.photoUrl ? (
               <div className="mt-6 overflow-hidden rounded-[1.6rem] border border-[#dfeaf2] bg-white/72 p-3">
                 <img
                   alt="Designed card"

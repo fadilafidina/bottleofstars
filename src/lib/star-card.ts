@@ -1,5 +1,8 @@
 import type { StarCardDesign } from "../types/star-card";
 
+export const STAR_CARD_WIDTH = 640;
+export const STAR_CARD_HEIGHT = 440;
+
 export function createDefaultCardDesign(): StarCardDesign {
   return {
     background: "paper",
