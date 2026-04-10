@@ -3,7 +3,7 @@ import { demoBottle, demoMessages } from "./demo-data";
 import type { Bottle } from "../types/bottle";
 import type { Message } from "../types/message";
 
-const demoMessagesStorageKey = "bottle-of-stars:demo-messages";
+const demoMessagesStorageKey = "bottle-of-stars:demo-messages:v2";
 
 function canUseStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";

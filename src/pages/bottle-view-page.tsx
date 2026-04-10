@@ -17,14 +17,14 @@ import { useMessages } from "../hooks/use-messages";
 import type { Message } from "../types/message";
 
 const starSlots = [
-  { top: "18%", left: "24%" },
-  { top: "24%", left: "54%" },
-  { top: "35%", left: "36%" },
-  { top: "44%", left: "62%" },
-  { top: "51%", left: "24%" },
-  { top: "59%", left: "49%" },
-  { top: "67%", left: "34%" },
-  { top: "72%", left: "61%" },
+  { top: "16%", left: "26%" },
+  { top: "21%", left: "55%" },
+  { top: "34%", left: "42%" },
+  { top: "44%", left: "64%" },
+  { top: "52%", left: "22%" },
+  { top: "60%", left: "49%" },
+  { top: "71%", left: "35%" },
+  { top: "76%", left: "60%" },
 ];
 
 export function BottleViewPage() {
@@ -119,34 +119,36 @@ export function BottleViewPage() {
         >
           <div className="pointer-events-none absolute inset-x-0 top-8 mx-auto h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(185,220,251,0.42),rgba(185,220,251,0)_68%)] blur-3xl" />
           <div className="relative mx-auto w-full max-w-md">
-            <AnimatePresence>
-              {visibleMessages.map((message, index) => {
-                const slot = starSlots[index % starSlots.length];
+            <div className="pointer-events-none absolute inset-x-[19%] top-[20%] bottom-[21%] z-10 rounded-[40%_40%_30%_30%/18%_18%_24%_24%]">
+              <AnimatePresence>
+                {visibleMessages.map((message, index) => {
+                  const slot = starSlots[index % starSlots.length];
 
-                return (
-                  <motion.button
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="absolute inset-0 z-10"
-                    exit={{ opacity: 0 }}
-                    initial={{ opacity: 0, scale: 0.7 }}
-                    key={message.id}
-                    onClick={() => {
-                      void handleOpenMessage(message);
-                    }}
-                    style={{ top: slot.top, left: slot.left }}
-                    transition={{ duration: 0.24, delay: index * 0.03 }}
-                    type="button"
-                  >
-                    <FloatingStar
-                      color={message.starColor || starPalette[index % starPalette.length]}
-                      delay={index * 0.4}
-                      dimmed={Boolean(message.openedAt)}
-                      size={index % 2 === 0 ? "md" : "lg"}
-                    />
-                  </motion.button>
-                );
-              })}
-            </AnimatePresence>
+                  return (
+                    <motion.button
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-1/2"
+                      exit={{ opacity: 0 }}
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      key={message.id}
+                      onClick={() => {
+                        void handleOpenMessage(message);
+                      }}
+                      style={{ top: slot.top, left: slot.left }}
+                      transition={{ duration: 0.24, delay: index * 0.03 }}
+                      type="button"
+                    >
+                      <FloatingStar
+                        color={message.starColor || starPalette[index % starPalette.length]}
+                        delay={index * 0.4}
+                        dimmed={Boolean(message.openedAt)}
+                        size={index % 3 === 0 ? "lg" : "md"}
+                      />
+                    </motion.button>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
 
             <BottleShell>
               <div className="flex items-center justify-center gap-3">

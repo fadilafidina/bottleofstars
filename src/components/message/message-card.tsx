@@ -1,18 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 
 import { StarCardPreview } from "../star-card/star-card-preview";
-import { stickerOptions } from "../../lib/stickers";
 import { Button } from "../ui/button";
 
 import type { Message } from "../../types/message";
-
-function getStickerLabel(id: string) {
-  return stickerOptions.find((entry) => entry.id === id)?.label ?? id;
-}
-
-function getStickerIcon(id: string) {
-  return stickerOptions.find((entry) => entry.id === id)?.icon ?? "✦";
-}
 
 type MessageCardProps = {
   message: Message | null;
@@ -27,7 +18,8 @@ export function MessageCard({
 }: MessageCardProps) {
   const shouldShowText =
     Boolean(message?.messageText?.trim()) &&
-    message?.messageText.trim() !== "Decorated star card";
+    message?.messageText.trim() !== "Decorated star card" &&
+    !message?.cardPayload;
   const showDesignedCard = Boolean(message?.cardPayload);
 
   return (
@@ -75,19 +67,6 @@ export function MessageCard({
               <p className="mt-5 whitespace-pre-wrap text-base leading-7 text-[var(--color-night)] sm:text-lg">
                 {message.messageText}
               </p>
-            ) : null}
-
-            {message.stickers.length ? (
-              <div className="mt-6 flex flex-wrap gap-2">
-                {message.stickers.map((sticker) => (
-                  <span
-                    className="rounded-full border border-[#d7e6f2] bg-[#f3f9fe] px-3 py-1.5 text-sm text-[var(--color-night)]"
-                    key={sticker}
-                  >
-                    {getStickerIcon(sticker)} {getStickerLabel(sticker)}
-                  </span>
-                ))}
-              </div>
             ) : null}
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
