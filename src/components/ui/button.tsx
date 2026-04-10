@@ -20,7 +20,7 @@ export function buttonVariants(
   variant: NonNullable<ButtonProps["variant"]> = "primary",
 ) {
   return cn(
-    "inline-flex min-h-12 items-center justify-center rounded-full px-5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-sky)] disabled:cursor-not-allowed disabled:opacity-60",
+    "inline-flex min-h-12 items-center justify-center rounded-2xl px-5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-sky)] disabled:cursor-not-allowed disabled:opacity-60",
     variants[variant],
   );
 }

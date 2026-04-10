@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type RefObject } from "react";
-import { Image as KonvaImage, Layer, Rect, Stage, Text } from "react-konva";
+import { Group, Image as KonvaImage, Layer, Rect, Stage, Text } from "react-konva";
 import type Konva from "konva";
 
 import { Button } from "../ui/button";
@@ -14,8 +14,8 @@ import type {
   StarCardImageElement,
 } from "../../types/star-card";
 
-const cardWidth = 380;
-const cardHeight = 500;
+const cardWidth = 640;
+const cardHeight = 440;
 
 const backgrounds: Array<{
   id: StarCardBackground;
@@ -29,6 +29,8 @@ const backgrounds: Array<{
 ];
 
 const emojiLibrary = ["✦", "☁️", "🩵", "🐚", "🌊", "🫧"];
+const bubblePaddingX = 18;
+const bubblePaddingY = 14;
 
 function useImage(src?: string) {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
@@ -53,11 +55,13 @@ function CanvasImageNode({
   isSelected,
   onSelect,
   onChange,
+  onRemove,
 }: {
   element: StarCardImageElement;
   isSelected: boolean;
   onSelect: () => void;
   onChange: (next: StarCardImageElement) => void;
+  onRemove: () => void;
 }) {
   const image = useImage(element.src);
 
@@ -72,6 +76,8 @@ function CanvasImageNode({
       height={element.height}
       image={image}
       onClick={onSelect}
+      onDblClick={onRemove}
+      onDblTap={onRemove}
       onDragEnd={(event) => {
         onChange({
           ...element,
@@ -89,22 +95,6 @@ function CanvasImageNode({
       y={element.y}
     />
   );
-}
-
-function extractSelectedLabel(element: StarCardElement | null) {
-  if (!element) {
-    return "";
-  }
-
-  if (element.kind === "text") {
-    return element.text;
-  }
-
-  if (element.kind === "emoji") {
-    return element.emoji;
-  }
-
-  return "Photo";
 }
 
 type StarCardEditorProps = {
@@ -128,6 +118,8 @@ export function StarCardEditor({
     design.elements.find((element) => element.id === selectedId) ?? null;
   const background = backgrounds.find((entry) => entry.id === design.background) ?? backgrounds[0];
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [textInput, setTextInput] = useState("");
+  const [showTextComposer, setShowTextComposer] = useState(false);
 
   const updateElement = (id: string, updater: (element: StarCardElement) => StarCardElement) => {
     onChange({
@@ -150,7 +142,24 @@ export function StarCardEditor({
     onSelect(null);
   };
 
-  const addText = () => {
+  const removeElement = (id: string) => {
+    onChange({
+      ...design,
+      elements: design.elements.filter((element) => element.id !== id),
+    });
+
+    if (selectedId === id) {
+      onSelect(null);
+    }
+  };
+
+  const addText = (textValue: string) => {
+    const trimmed = textValue.trim();
+
+    if (!trimmed) {
+      return;
+    }
+
     const id = crypto.randomUUID();
     onChange({
       ...design,
@@ -159,16 +168,18 @@ export function StarCardEditor({
         {
           id,
           kind: "text",
-          text: "Write me",
-          x: 44,
-          y: 178,
-          fontSize: 24,
+          text: trimmed,
+          x: 56,
+          y: 128,
+          fontSize: 22,
           color: "#344255",
-          rotation: 0,
+          rotation: -2 + Math.random() * 4,
         },
       ],
     });
     onSelect(id);
+    setTextInput("");
+    setShowTextComposer(false);
   };
 
   const addEmoji = (emoji: string) => {
@@ -212,8 +223,8 @@ export function StarCardEditor({
     if (design.background === "sky") {
       return (
         <>
-          <Rect cornerRadius={160} fill="#d8ebfd" height={120} opacity={0.8} width={180} x={140} y={28} />
-          <Rect cornerRadius={160} fill="#eff7fe" height={72} opacity={0.95} width={110} x={24} y={44} />
+          <Rect cornerRadius={160} fill="#d8ebfd" height={120} opacity={0.8} width={180} x={284} y={18} />
+          <Rect cornerRadius={160} fill="#eff7fe" height={72} opacity={0.95} width={110} x={32} y={38} />
         </>
       );
     }
@@ -221,23 +232,23 @@ export function StarCardEditor({
     if (design.background === "blush") {
       return (
         <>
-          <Rect cornerRadius={160} fill="#f6e8ee" height={120} opacity={0.9} width={180} x={-18} y={286} />
-          <Rect cornerRadius={160} fill="#fff2ef" height={72} opacity={0.85} width={110} x={218} y={32} />
+          <Rect cornerRadius={160} fill="#f6e8ee" height={120} opacity={0.9} width={180} x={-18} y={246} />
+          <Rect cornerRadius={160} fill="#fff2ef" height={72} opacity={0.85} width={110} x={396} y={32} />
         </>
       );
     }
 
     return (
       <>
-        <Rect cornerRadius={160} fill="#e8f4fe" height={96} opacity={0.95} width={156} x={146} y={24} />
-        <Rect cornerRadius={160} fill="#f9f2eb" height={120} opacity={0.84} width={184} x={-24} y={278} />
+        <Rect cornerRadius={160} fill="#e8f4fe" height={96} opacity={0.95} width={156} x={354} y={24} />
+        <Rect cornerRadius={160} fill="#f9f2eb" height={120} opacity={0.84} width={184} x={-24} y={238} />
       </>
     );
   }, [design.background]);
 
   return (
-    <div className="space-y-5">
-      <div className="mx-auto w-full max-w-[20rem] overflow-hidden rounded-[2rem] border border-[#dfeaf2] bg-white shadow-[0_24px_80px_rgba(164,184,204,0.16)]">
+    <div className="mx-auto w-full max-w-[40rem] space-y-5">
+      <div className="mx-auto flex w-full justify-center overflow-hidden rounded-[2rem] bg-transparent">
         <Stage
           height={cardHeight}
           onMouseDown={(event) => {
@@ -254,9 +265,9 @@ export function StarCardEditor({
               cornerRadius={28}
               fill={background.base}
               height={cardHeight}
-              shadowBlur={20}
+              shadowBlur={16}
               shadowColor="#dce9f4"
-              shadowOpacity={0.5}
+              shadowOpacity={0.35}
               width={cardWidth}
             />
             {backgroundDecor}
@@ -266,20 +277,34 @@ export function StarCardEditor({
               height={12}
               opacity={0.5}
               width={96}
-              x={112}
-              y={28}
+              x={232}
+              y={24}
             />
 
             {design.elements.map((element) => {
               if (element.kind === "text") {
+                const textLength = Math.max(1, element.text.trim().length);
+                const bubbleWidth = Math.min(
+                  220,
+                  Math.max(92, textLength * (element.fontSize * 0.56) + bubblePaddingX * 2),
+                );
+                const maxCharsPerLine = Math.max(
+                  8,
+                  Math.floor((bubbleWidth - bubblePaddingX * 2) / (element.fontSize * 0.56)),
+                );
+                const lineCount = Math.max(1, Math.ceil(textLength / maxCharsPerLine));
+                const bubbleHeight = Math.max(
+                  54,
+                  lineCount * (element.fontSize + 3) + bubblePaddingY * 2,
+                );
+
                 return (
-                  <Text
+                  <Group
                     draggable
-                    fill={element.color}
-                    fontFamily="Georgia"
-                    fontSize={element.fontSize}
                     key={element.id}
                     onClick={() => onSelect(element.id)}
+                    onDblClick={() => removeElement(element.id)}
+                    onDblTap={() => removeElement(element.id)}
                     onDragEnd={(event) => {
                       updateElement(element.id, () => ({
                         ...element,
@@ -287,17 +312,43 @@ export function StarCardEditor({
                         y: event.target.y(),
                       }));
                     }}
-                    rotation={element.rotation}
-                    shadowBlur={selectedId === element.id ? 14 : 0}
-                    shadowColor="#98c9f3"
-                    stroke={selectedId === element.id ? "#98c9f3" : undefined}
-                    strokeWidth={selectedId === element.id ? 0.6 : 0}
-                    text={element.text}
-                    width={228}
-                    wrap="word"
                     x={element.x}
                     y={element.y}
-                  />
+                  >
+                    <Rect
+                      cornerRadius={20}
+                      fill="rgba(255,255,255,0.92)"
+                      height={bubbleHeight}
+                      rotation={element.rotation}
+                      shadowBlur={selectedId === element.id ? 16 : 10}
+                      shadowColor="#b9dcfb"
+                      shadowOpacity={0.45}
+                      stroke={selectedId === element.id ? "#98c9f3" : "#edf2f7"}
+                      strokeWidth={selectedId === element.id ? 2 : 1}
+                      width={bubbleWidth}
+                    />
+                    <Rect
+                      cornerRadius={10}
+                      fill="rgba(255,255,255,0.92)"
+                      height={16}
+                      rotation={element.rotation - 14}
+                      width={16}
+                      x={20}
+                      y={bubbleHeight - 8}
+                    />
+                    <Text
+                      fill={element.color}
+                      fontFamily="Georgia"
+                      fontSize={element.fontSize}
+                      height={bubbleHeight}
+                      padding={bubblePaddingX}
+                      rotation={element.rotation}
+                      text={element.text}
+                      verticalAlign="middle"
+                      width={bubbleWidth}
+                      wrap="word"
+                    />
+                  </Group>
                 );
               }
 
@@ -308,6 +359,8 @@ export function StarCardEditor({
                     fontSize={element.fontSize}
                     key={element.id}
                     onClick={() => onSelect(element.id)}
+                    onDblClick={() => removeElement(element.id)}
+                    onDblTap={() => removeElement(element.id)}
                     onDragEnd={(event) => {
                       updateElement(element.id, () => ({
                         ...element,
@@ -333,6 +386,7 @@ export function StarCardEditor({
                   onChange={(next) => {
                     updateElement(element.id, () => next);
                   }}
+                  onRemove={() => removeElement(element.id)}
                   onSelect={() => onSelect(element.id)}
                 />
               );
@@ -341,12 +395,34 @@ export function StarCardEditor({
         </Stage>
       </div>
 
-      <Card className="space-y-4 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="w-full space-y-4 px-1 sm:px-2">
+        <div>
+          <p className="mb-3 text-xs uppercase tracking-[0.24em] text-[var(--color-night)]/75">
+            Stickers
+          </p>
+          <div className="flex flex-wrap gap-2">
+          {emojiLibrary.map((emoji) => (
+            <button
+              className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#dfeaf2] bg-white/86 text-xl transition hover:-translate-y-0.5 hover:bg-[#edf7ff]"
+              key={emoji}
+              onClick={() => addEmoji(emoji)}
+              type="button"
+            >
+              {emoji}
+            </button>
+          ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="mb-3 text-xs uppercase tracking-[0.24em] text-[var(--color-night)]/75">
+            Theme
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
           {backgrounds.map((entry) => (
             <button
               className={cn(
-                "rounded-full border px-3 py-2 text-sm transition",
+                "rounded-2xl border px-3 py-2 text-sm transition",
                 design.background === entry.id
                   ? "border-[var(--color-sky)] bg-[#edf7ff] text-[var(--color-ink)]"
                   : "border-[#dfeaf2] bg-white/80 text-[var(--color-night)]",
@@ -358,105 +434,56 @@ export function StarCardEditor({
               {entry.label}
             </button>
           ))}
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={addText} type="button">
-            Add text
+        <div>
+          <p className="mb-3 text-xs uppercase tracking-[0.24em] text-[var(--color-night)]/75">
+            Text
+          </p>
+          <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => setShowTextComposer((current) => !current)}
+            type="button"
+            variant={showTextComposer ? "secondary" : "primary"}
+          >
+            Add text bubble
           </Button>
-          {emojiLibrary.map((emoji) => (
-            <button
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-[#dfeaf2] bg-white/86 text-xl transition hover:bg-[#edf7ff]"
-              key={emoji}
-              onClick={() => addEmoji(emoji)}
-              type="button"
-            >
-              {emoji}
-            </button>
-          ))}
-          <label className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border border-[#dfeaf2] bg-white/86 px-4 text-sm text-[var(--color-ink)] transition hover:bg-[#edf7ff]">
+          <label className="inline-flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border border-[#dfeaf2] bg-white/86 px-4 text-sm text-[var(--color-ink)] transition hover:bg-[#edf7ff]">
             {isUploadingPhoto ? "Adding..." : "Add photo"}
             <input accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleUpload} type="file" />
           </label>
+          </div>
         </div>
 
-        <div className="rounded-[1.5rem] border border-[#e3edf5] bg-white/76 p-4">
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--color-night)]/75">
-            Selected
-          </p>
-          {selectedElement ? (
-            <div className="mt-3 space-y-3">
-              <p className="text-sm text-[var(--color-night)]">
-                {selectedElement.kind === "image"
-                  ? "Move the photo directly on the card."
-                  : "Tap the text below to rewrite it, then drag it into place."}
-              </p>
-              {selectedElement.kind !== "image" ? (
-                <input
-                  className="h-11 w-full rounded-2xl border border-[#dae7f3] bg-white/86 px-4 text-[var(--color-ink)] outline-none placeholder:text-[#96a3b0]"
-                  onChange={(event) => {
-                    updateElement(selectedElement.id, (element) =>
-                      element.kind === "text"
-                        ? { ...element, text: event.target.value }
-                        : element.kind === "emoji"
-                          ? {
-                              ...element,
-                              emoji: event.target.value.slice(0, 2) || element.emoji,
-                            }
-                          : element,
-                    );
-                  }}
-                  placeholder="Edit selected item"
-                  value={extractSelectedLabel(selectedElement)}
-                />
-              ) : null}
-              <div className="flex gap-2">
-                {selectedElement.kind !== "image" ? (
-                  <>
-                    <button
-                      className="rounded-full border border-[#dfeaf2] bg-white px-3 py-2 text-sm text-[var(--color-night)]"
-                      onClick={() =>
-                        updateElement(selectedElement.id, (element) => ({
-                          ...element,
-                          fontSize:
-                            "fontSize" in element ? Math.max(18, element.fontSize - 2) : 26,
-                        }))
-                      }
-                      type="button"
-                    >
-                      A-
-                    </button>
-                    <button
-                      className="rounded-full border border-[#dfeaf2] bg-white px-3 py-2 text-sm text-[var(--color-night)]"
-                      onClick={() =>
-                        updateElement(selectedElement.id, (element) => ({
-                          ...element,
-                          fontSize:
-                            "fontSize" in element ? Math.min(52, element.fontSize + 2) : 32,
-                        }))
-                      }
-                      type="button"
-                    >
-                      A+
-                    </button>
-                  </>
-                ) : null}
-                <button
-                  className="rounded-full border border-[#efd5dd] bg-[#fff5f7] px-3 py-2 text-sm text-[#9b5e72]"
-                  onClick={removeSelected}
-                  type="button"
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-[var(--color-night)]">
-              Tap anything on the card to edit or move it.
-            </p>
-          )}
-        </div>
-      </Card>
+        {showTextComposer ? (
+          <div className="flex flex-col gap-3 rounded-[1.5rem] border border-[#e3edf5] bg-white/76 p-4 sm:flex-row sm:items-center">
+            <input
+              className="h-12 flex-1 rounded-2xl border border-[#dae7f3] bg-white/88 px-4 text-[var(--color-ink)] outline-none placeholder:text-[#96a3b0]"
+              onChange={(event) => setTextInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  addText(textInput);
+                }
+              }}
+              placeholder="Write a little note..."
+              value={textInput}
+            />
+            <Button
+              disabled={!textInput.trim()}
+              onClick={() => addText(textInput)}
+              type="button"
+            >
+              Drop in
+            </Button>
+          </div>
+        ) : null}
+
+        <p className="text-center text-sm text-[var(--color-night)]">
+          Tap a sticker to drop it in. Double tap any item to remove it.
+        </p>
+      </div>
     </div>
   );
 }

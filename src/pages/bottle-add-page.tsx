@@ -153,54 +153,42 @@ export function BottleAddPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-8 sm:py-10">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto w-full max-w-[40rem]">
         <div className="mb-6 text-center sm:mb-8">
-          <h1 className="font-serif text-4xl text-[var(--color-ink)] sm:text-5xl">
+          <h1 className="font-serif text-2xl text-[var(--color-ink)] sm:text-3xl">
             Add your message for {bottle.recipientNames}
           </h1>
         </div>
 
-        <Card className="mx-auto">
+        <div className="mx-auto">
           {submitState === "success" ? (
-            <motion.div
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-5 text-center"
-              initial={{ opacity: 0, y: 20 }}
-            >
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/12 shadow-[0_0_50px_rgba(199,228,255,0.35)]">
-                <span className="text-4xl">✦</span>
-              </div>
-              <div>
-                <p className="text-sm uppercase tracking-[0.28em] text-[var(--color-night)]/80">
-                  Star delivered
-                </p>
-                <h2 className="mt-4 font-serif text-4xl text-[var(--color-ink)]">
-                  Your star is in the bottle
-                </h2>
-                <p className="mt-4 text-[var(--color-night)]">
-                  Thank you for adding a little light to {bottle.recipientNames}.
-                </p>
-              </div>
-              <Button className="w-full" onClick={() => setSubmitState("idle")}>
-                Add another star
-              </Button>
-            </motion.div>
+            <Card className="mx-auto w-full max-w-[40rem]">
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-5 text-center"
+                initial={{ opacity: 0, y: 20 }}
+              >
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white/12 shadow-[0_0_50px_rgba(199,228,255,0.35)]">
+                  <span className="text-4xl">✦</span>
+                </div>
+                <div>
+                  <p className="text-sm uppercase tracking-[0.28em] text-[var(--color-night)]/80">
+                    Star delivered
+                  </p>
+                  <h2 className="mt-4 font-serif text-4xl text-[var(--color-ink)]">
+                    Your star is in the bottle
+                  </h2>
+                  <p className="mt-4 text-[var(--color-night)]">
+                    Thank you for adding a little light to {bottle.recipientNames}.
+                  </p>
+                </div>
+                <Button className="w-full" onClick={() => setSubmitState("idle")}>
+                  Add another star
+                </Button>
+              </motion.div>
+            </Card>
           ) : (
-            <form className="space-y-5" onSubmit={onSubmit}>
-              <div className="space-y-2">
-                <label className="text-sm text-[var(--color-night)]" htmlFor="senderName">
-                  Signed by
-                </label>
-                <input
-                  className="h-12 w-full rounded-2xl border border-[#dae7f3] bg-white/80 px-4 text-[var(--color-ink)] outline-none placeholder:text-[#96a3b0] focus:border-[var(--color-sky)]"
-                  id="senderName"
-                onChange={(event) => setSenderName(event.target.value)}
-                placeholder="Optional"
-                type="text"
-                value={senderName}
-              />
-              </div>
-
+            <form className="space-y-6" onSubmit={onSubmit}>
               <StarCardEditor
                 design={cardDesign}
                 onChange={setCardDesign}
@@ -210,18 +198,34 @@ export function BottleAddPage() {
                 stageRef={stageRef}
               />
 
-            {errorMessage ? (
-              <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                {errorMessage}
-              </p>
-            ) : null}
+              <div className="mx-auto w-full max-w-[40rem] space-y-2">
+                <label className="text-sm text-[var(--color-night)]" htmlFor="senderName">
+                  Signed by
+                </label>
+                <input
+                  className="h-12 w-full rounded-2xl border border-[#dae7f3] bg-white/80 px-4 text-[var(--color-ink)] outline-none placeholder:text-[#96a3b0] focus:border-[var(--color-sky)]"
+                  id="senderName"
+                  onChange={(event) => setSenderName(event.target.value)}
+                  placeholder="Optional"
+                  type="text"
+                  value={senderName}
+                />
+              </div>
 
-            <Button className="w-full" disabled={submitState === "submitting"} type="submit">
-              Send this card into the bottle
-            </Button>
+              {errorMessage ? (
+                <p className="mx-auto w-full max-w-[40rem] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  {errorMessage}
+                </p>
+              ) : null}
+
+              <div className="mx-auto w-full max-w-[40rem]">
+                <Button className="w-full" disabled={submitState === "submitting"} type="submit">
+                  Send this card into the bottle
+                </Button>
+              </div>
             </form>
           )}
-        </Card>
+        </div>
       </div>
 
       <motion.div
