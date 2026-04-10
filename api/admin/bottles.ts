@@ -1,6 +1,6 @@
-import { getSupabaseAdmin } from "../_lib/supabase-admin";
-import { allowMethods, json, parseJsonBody, requireAdmin } from "../_lib/http";
-import { generateToken, slugify } from "../_lib/tokens";
+import { getSupabaseAdmin } from "../_lib/supabase-admin.js";
+import { allowMethods, json, parseJsonBody, requireAdmin } from "../_lib/http.js";
+import { generateToken, slugify } from "../_lib/tokens.js";
 
 type CreateBottleBody = {
   title?: string;

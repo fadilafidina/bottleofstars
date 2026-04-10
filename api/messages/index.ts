@@ -1,5 +1,5 @@
-import { getSupabaseAdmin } from "../_lib/supabase-admin";
-import { allowMethods, json, parseJsonBody } from "../_lib/http";
+import { getSupabaseAdmin } from "../_lib/supabase-admin.js";
+import { allowMethods, json, parseJsonBody } from "../_lib/http.js";
 
 type CreateMessageBody = {
   bottleId?: string;
