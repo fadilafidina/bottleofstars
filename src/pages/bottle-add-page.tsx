@@ -71,10 +71,10 @@ export function BottleAddPage() {
           id,
           kind: "image",
           src,
-          x: 70,
-          y: 222,
-          width: 180,
-          height: 120,
+          x: 190,
+          y: 178,
+          width: 220,
+          height: 148,
           rotation: -3,
         },
       ],
@@ -153,7 +153,7 @@ export function BottleAddPage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-8 sm:py-10">
-      <div className="mx-auto w-full max-w-[40rem]">
+      <div className="mx-auto w-full max-w-[48rem]">
         <div className="mb-6 text-center sm:mb-8">
           <h1 className="font-serif text-2xl text-[var(--color-ink)] sm:text-3xl">
             Add your message for {bottle.recipientNames}
@@ -162,7 +162,7 @@ export function BottleAddPage() {
 
         <div className="mx-auto">
           {submitState === "success" ? (
-            <Card className="mx-auto w-full max-w-[40rem]">
+            <Card className="mx-auto w-full max-w-[48rem]">
               <motion.div
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-5 text-center"
@@ -198,7 +198,7 @@ export function BottleAddPage() {
                 stageRef={stageRef}
               />
 
-              <div className="mx-auto w-full max-w-[40rem] space-y-2">
+              <div className="mx-auto w-full max-w-[48rem] space-y-2">
                 <label className="text-sm text-[var(--color-night)]" htmlFor="senderName">
                   Signed by
                 </label>
@@ -213,12 +213,12 @@ export function BottleAddPage() {
               </div>
 
               {errorMessage ? (
-                <p className="mx-auto w-full max-w-[40rem] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <p className="mx-auto w-full max-w-[48rem] rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                   {errorMessage}
                 </p>
               ) : null}
 
-              <div className="mx-auto w-full max-w-[40rem]">
+              <div className="mx-auto w-full max-w-[48rem]">
                 <Button className="w-full" disabled={submitState === "submitting"} type="submit">
                   Send this card into the bottle
                 </Button>
@@ -227,14 +227,6 @@ export function BottleAddPage() {
           )}
         </div>
       </div>
-
-      <motion.div
-        animate={{ opacity: [0.45, 0.75, 0.45] }}
-        className="pointer-events-none fixed right-4 bottom-4 rounded-full border border-[#d7e6f2] bg-white/80 px-4 py-2 text-xs uppercase tracking-[0.28em] text-[var(--color-night)] backdrop-blur-lg"
-        transition={{ duration: 3.2, repeat: Infinity }}
-      >
-        Guest flow wired
-      </motion.div>
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type RefObject } from "react";
 import { Group, Image as KonvaImage, Layer, Rect, Stage, Text } from "react-konva";
 import type Konva from "konva";
 
@@ -116,6 +116,29 @@ export function StarCardEditor({
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [textInput, setTextInput] = useState("");
   const [showTextComposer, setShowTextComposer] = useState(false);
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const [frameWidth, setFrameWidth] = useState(cardWidth);
+  const scale = Math.min(frameWidth / cardWidth, 1);
+  const scaledHeight = cardHeight * scale;
+
+  useEffect(() => {
+    const node = frameRef.current;
+
+    if (!node) {
+      return;
+    }
+
+    const update = () => {
+      setFrameWidth(node.clientWidth);
+    };
+
+    update();
+
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
 
   const updateElement = (id: string, updater: (element: StarCardElement) => StarCardElement) => {
     onChange({
@@ -153,8 +176,8 @@ export function StarCardEditor({
           id,
           kind: "text",
           text: trimmed,
-          x: 56,
-          y: 128,
+          x: 92 + Math.random() * 220,
+          y: 104 + Math.random() * 140,
           fontSize: 22,
           color: "#344255",
           rotation: -2 + Math.random() * 4,
@@ -176,8 +199,8 @@ export function StarCardEditor({
           id,
           kind: "emoji",
           emoji,
-          x: 64 + Math.random() * 180,
-          y: 84 + Math.random() * 180,
+          x: 92 + Math.random() * 300,
+          y: 84 + Math.random() * 220,
           fontSize: 34,
           rotation: -10 + Math.random() * 20,
         },
@@ -231,152 +254,159 @@ export function StarCardEditor({
   }, [design.background]);
 
   return (
-    <div className="mx-auto w-full max-w-[40rem] space-y-5">
-      <div className="mx-auto flex w-full justify-center overflow-hidden rounded-[2rem] bg-transparent">
-        <Stage
-          height={cardHeight}
-          onMouseDown={(event) => {
-            const clickedOnStage = event.target === event.target.getStage();
-            if (clickedOnStage) {
-              onSelect(null);
-            }
-          }}
-          ref={stageRef}
-          width={cardWidth}
+    <div className="mx-auto w-full max-w-[48rem] space-y-5">
+      <div className="mx-auto w-full" ref={frameRef}>
+        <div
+          className="mx-auto overflow-hidden"
+          style={{ height: scaledHeight, width: cardWidth * scale }}
         >
-          <Layer>
-            <Rect
-              cornerRadius={28}
-              fill={background.base}
-              height={cardHeight}
-              shadowBlur={16}
-              shadowColor="#dce9f4"
-              shadowOpacity={0.35}
-              width={cardWidth}
-            />
-            {backgroundDecor}
-            <Rect
-              cornerRadius={24}
-              fill={background.accent}
-              height={12}
-              opacity={0.5}
-              width={96}
-              x={232}
-              y={24}
-            />
-
-            {design.elements.map((element) => {
-              if (element.kind === "text") {
-                const textLength = Math.max(1, element.text.trim().length);
-                const bubbleWidth = Math.min(
-                  220,
-                  Math.max(92, textLength * (element.fontSize * 0.56) + bubblePaddingX * 2),
-                );
-                const maxCharsPerLine = Math.max(
-                  8,
-                  Math.floor((bubbleWidth - bubblePaddingX * 2) / (element.fontSize * 0.56)),
-                );
-                const lineCount = Math.max(1, Math.ceil(textLength / maxCharsPerLine));
-                const bubbleHeight = Math.max(
-                  54,
-                  lineCount * (element.fontSize + 3) + bubblePaddingY * 2,
-                );
-
-                return (
-                  <Group
-                    draggable
-                    key={element.id}
-                    onClick={() => onSelect(element.id)}
-                    onDblClick={() => removeElement(element.id)}
-                    onDblTap={() => removeElement(element.id)}
-                    onDragEnd={(event) => {
-                      updateElement(element.id, () => ({
-                        ...element,
-                        x: event.target.x(),
-                        y: event.target.y(),
-                      }));
-                    }}
-                    x={element.x}
-                    y={element.y}
-                  >
-                    <Rect
-                      cornerRadius={20}
-                      fill="rgba(255,255,255,0.92)"
-                      height={bubbleHeight}
-                      rotation={element.rotation}
-                      shadowBlur={selectedId === element.id ? 16 : 10}
-                      shadowColor="#b9dcfb"
-                      shadowOpacity={0.45}
-                      stroke={selectedId === element.id ? "#98c9f3" : "#edf2f7"}
-                      strokeWidth={selectedId === element.id ? 2 : 1}
-                      width={bubbleWidth}
-                    />
-                    <Rect
-                      cornerRadius={10}
-                      fill="rgba(255,255,255,0.92)"
-                      height={16}
-                      rotation={element.rotation - 14}
-                      width={16}
-                      x={20}
-                      y={bubbleHeight - 8}
-                    />
-                    <Text
-                      fill={element.color}
-                      fontFamily="Georgia"
-                      fontSize={element.fontSize}
-                      height={bubbleHeight}
-                      padding={bubblePaddingX}
-                      rotation={element.rotation}
-                      text={element.text}
-                      verticalAlign="middle"
-                      width={bubbleWidth}
-                      wrap="word"
-                    />
-                  </Group>
-                );
+          <Stage
+            height={cardHeight}
+            onMouseDown={(event) => {
+              const clickedOnStage = event.target === event.target.getStage();
+              if (clickedOnStage) {
+                onSelect(null);
               }
+            }}
+            ref={stageRef}
+            scaleX={scale}
+            scaleY={scale}
+            width={cardWidth}
+          >
+            <Layer>
+              <Rect
+                cornerRadius={28}
+                fill={background.base}
+                height={cardHeight}
+                shadowBlur={16}
+                shadowColor="#dce9f4"
+                shadowOpacity={0.35}
+                width={cardWidth}
+              />
+              {backgroundDecor}
+              <Rect
+                cornerRadius={24}
+                fill={background.accent}
+                height={12}
+                opacity={0.5}
+                width={96}
+                x={232}
+                y={24}
+              />
 
-              if (element.kind === "emoji") {
+              {design.elements.map((element) => {
+                if (element.kind === "text") {
+                  const textLength = Math.max(1, element.text.trim().length);
+                  const bubbleWidth = Math.min(
+                    220,
+                    Math.max(92, textLength * (element.fontSize * 0.56) + bubblePaddingX * 2),
+                  );
+                  const maxCharsPerLine = Math.max(
+                    8,
+                    Math.floor((bubbleWidth - bubblePaddingX * 2) / (element.fontSize * 0.56)),
+                  );
+                  const lineCount = Math.max(1, Math.ceil(textLength / maxCharsPerLine));
+                  const bubbleHeight = Math.max(
+                    54,
+                    lineCount * (element.fontSize + 3) + bubblePaddingY * 2,
+                  );
+
+                  return (
+                    <Group
+                      draggable
+                      key={element.id}
+                      onClick={() => onSelect(element.id)}
+                      onDblClick={() => removeElement(element.id)}
+                      onDblTap={() => removeElement(element.id)}
+                      onDragEnd={(event) => {
+                        updateElement(element.id, () => ({
+                          ...element,
+                          x: event.target.x(),
+                          y: event.target.y(),
+                        }));
+                      }}
+                      x={element.x}
+                      y={element.y}
+                    >
+                      <Rect
+                        cornerRadius={20}
+                        fill="rgba(255,255,255,0.92)"
+                        height={bubbleHeight}
+                        rotation={element.rotation}
+                        shadowBlur={selectedId === element.id ? 16 : 10}
+                        shadowColor="#b9dcfb"
+                        shadowOpacity={0.45}
+                        stroke={selectedId === element.id ? "#98c9f3" : "#edf2f7"}
+                        strokeWidth={selectedId === element.id ? 2 : 1}
+                        width={bubbleWidth}
+                      />
+                      <Rect
+                        cornerRadius={10}
+                        fill="rgba(255,255,255,0.92)"
+                        height={16}
+                        rotation={element.rotation - 14}
+                        width={16}
+                        x={20}
+                        y={bubbleHeight - 8}
+                      />
+                      <Text
+                        fill={element.color}
+                        fontFamily="Georgia"
+                        fontSize={element.fontSize}
+                        height={bubbleHeight}
+                        padding={bubblePaddingX}
+                        rotation={element.rotation}
+                        text={element.text}
+                        verticalAlign="middle"
+                        width={bubbleWidth}
+                        wrap="word"
+                      />
+                    </Group>
+                  );
+                }
+
+                if (element.kind === "emoji") {
+                  return (
+                    <Text
+                      draggable
+                      fontSize={element.fontSize}
+                      key={element.id}
+                      onClick={() => onSelect(element.id)}
+                      onDblClick={() => removeElement(element.id)}
+                      onDblTap={() => removeElement(element.id)}
+                      onDragEnd={(event) => {
+                        updateElement(element.id, () => ({
+                          ...element,
+                          x: event.target.x(),
+                          y: event.target.y(),
+                        }));
+                      }}
+                      rotation={element.rotation}
+                      shadowBlur={selectedId === element.id ? 18 : 0}
+                      shadowColor="#98c9f3"
+                      text={element.emoji}
+                      x={element.x}
+                      y={element.y}
+                    />
+                  );
+                }
+
                 return (
-                  <Text
-                    draggable
-                    fontSize={element.fontSize}
+                  <CanvasImageNode
+                    element={element}
+                    isSelected={selectedId === element.id}
                     key={element.id}
-                    onClick={() => onSelect(element.id)}
-                    onDblClick={() => removeElement(element.id)}
-                    onDblTap={() => removeElement(element.id)}
-                    onDragEnd={(event) => {
-                      updateElement(element.id, () => ({
-                        ...element,
-                        x: event.target.x(),
-                        y: event.target.y(),
-                      }));
+                    onChange={(next) => {
+                      updateElement(element.id, () => next);
                     }}
-                    rotation={element.rotation}
-                    shadowBlur={selectedId === element.id ? 18 : 0}
-                    shadowColor="#98c9f3"
-                    text={element.emoji}
-                    x={element.x}
-                    y={element.y}
+                    onRemove={() => removeElement(element.id)}
+                    onSelect={() => onSelect(element.id)}
                   />
                 );
-              }
-
-              return (
-                <CanvasImageNode
-                  element={element}
-                  isSelected={selectedId === element.id}
-                  key={element.id}
-                  onChange={(next) => {
-                    updateElement(element.id, () => next);
-                  }}
-                  onRemove={() => removeElement(element.id)}
-                  onSelect={() => onSelect(element.id)}
-                />
-              );
-            })}
-          </Layer>
-        </Stage>
+              })}
+            </Layer>
+          </Stage>
+        </div>
       </div>
 
       <div className="w-full space-y-4 px-1 sm:px-2">
@@ -446,7 +476,7 @@ export function StarCardEditor({
         </div>
 
         {showTextComposer ? (
-          <div className="flex flex-col gap-3 rounded-[1.5rem] border border-[#e3edf5] bg-white/76 p-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <input
               className="h-12 flex-1 rounded-2xl border border-[#dae7f3] bg-white/88 px-4 text-[var(--color-ink)] outline-none placeholder:text-[#96a3b0]"
               onChange={(event) => setTextInput(event.target.value)}
@@ -456,7 +486,7 @@ export function StarCardEditor({
                   addText(textInput);
                 }
               }}
-              placeholder="Write a little note..."
+              placeholder="Type your text"
               value={textInput}
             />
             <Button
@@ -469,7 +499,7 @@ export function StarCardEditor({
           </div>
         ) : null}
 
-        <p className="text-center text-sm text-[var(--color-night)]">
+        <p className="text-center text-sm text-[var(--color-night)]/82">
           Tap a sticker to drop it in. Double tap any item to remove it.
         </p>
       </div>
